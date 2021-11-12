@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test-1.0.0</title>
+  </head>
+  <body>
+    <div id="serialport-view" class="div-serialport">
+      <div>
+        <label>串口名称:</label>
+        <select id="portName" onchange="onPortChange(this.value)"></select>
+      </div>
+
+      <div style="margin-top: 20px">
+        <label>波特率:</label>
+        <select id="baudRate">
+          <option value="2400">2400</option>
+          <option value="4800">4800</option>
+          <option value="9600">9600</option>
+          <option value="19200">19200</option>
+          <option value="38400">38400</option>
+          <option value="57600">57600</option>
+          <option value="115200">115200</option>
+        </select>
+      </div>
+
+      <button id="submit" onclick="submit()" style="margin-top: 20px">
+        打开串口
+      </button>
+    </div>
+  </body>
+
+  <script>
+    const { ipcRenderer } = require("electron");
+    let openedPort = [];
+
+    // 添加iframe页面
+    document.write(
+      `<div style="width: 100%; height: 100%"><iframe id="iframe" allow="camera" src="https://wuxiaozheng.wuzheng.com.cn:8090/forage-manager/?${new Date().getTime()}"></iframe></div>`
+    );
+
+    let nameElement = document.getElementById("portName");
+    let baudRateElement = document.getElementById("baudRate");
+    let submitButton = document.getElementById("submit");
+
+    ipcRenderer.on("open-serialport", (event, args) => {
+      if (args.hasError) {
+        alert(args.message);
+        submitButton.innerText = "打开串口";
+        submitButton.style.backgroundColor = "";
+      } else {
+        openedPort.push(args.name);
+        submitButton.innerText = "关闭串口";
+        submitButton.style.backgroundColor = "#008000";
+      }
+      console.log(args);
+    });
+
+    ipcRenderer.on("close-serialport", (event, args) => {
+      const index = openedPort.findIndex((i) => i === args.name);
+      openedPort.splice(index, 1);
+      submitButton.innerText = "打开串口";
+      submitButton.style.backgroundColor = "";
+    });
+
+    ipcRenderer.on("send-port-info", (event, args) => {
+      for (let port of args) {
+        nameElement.add(new Option(port.path, port.path));
+      }
+      console.log(args);
+    });
+
+    ipcRenderer.on("send-data", (event, args) => {
+      console.log(args);
+      const iframe = document.getElementById("iframe");
+      iframe.contentWindow.postMessage(args, "*");
+    });
+
+    ipcRenderer.on("show-port-view", (event, args) => {
+      const serialportView = document.getElementById("serialport-view");
+      const currentDisplay = serialportView.style.display;
+      serialportView.style.display =
+        currentDisplay === "block" ? "none" : "block";
+    });
+
+    function submit() {
+      const name = nameElement.value;
+      const baudRate = baudRateElement.value;
+
+      if (openedPort.includes(name)) {
+        sendMessageToMain("close-serialport", { name });
+      } else {
+        sendMessageToMain("open-serialport", { name, baudRate });
+      }
+    }
+
+    function sendMessageToMain(eventName, data) {
+      ipcRenderer.send(eventName, data);
+    }
+
+    function onPortChange(value) {
+      if (openedPort.includes(value)) {
+        submitButton.innerText = "关闭串口";
+        submitButton.style.backgroundColor = "#008000";
+      } else {
+        submitButton.innerText = "打开串口";
+        submitButton.style.backgroundColor = "";
+      }
+      console.log(value);
+    }
+  </script>
+</html>
+
+<style>
+  html,
+  body,
+  iframe {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border: 0;
+  }
+
+  .div-serialport {
+    position: absolute;
+    z-index: 99999;
+    display: none;
+    width: 150px;
+    height: 150px;
+
+    padding: 10px;
+    border-right: 1px #b8adad solid;
+    border-bottom: 1px #b8adad solid;
+    background-color: #f1f1f1;
+
+    text-align: center;
+  }
+</style>

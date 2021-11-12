@@ -1,0 +1,4 @@
+provider: generic
+url: http://localhost:7777/download
+channel: latest
+updaterCacheDirName: my-electron-app-updater

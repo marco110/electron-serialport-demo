@@ -1,0 +1,53 @@
+{
+  "name": "my-electron-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "build": {
+    "appId": "com.xxx.app",
+    "productName": "marco-test-app",
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "http://localhost:7777/download",
+        "channel": "latest"
+      }
+    ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true, 
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "marco-app"
+    }
+  },
+  "scripts": {
+    "start": "electron --inspect=8888 .",
+    "build": "electron-builder --win --x64",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^15.3.0",
+    "electron-builder": "^22.13.1",
+    "electron-rebuild": "^3.2.3"
+  },
+  "dependencies": {
+    "serialport": "^9.2.5",
+    "electron-updater": "^4.3.9"
+  }
+}
